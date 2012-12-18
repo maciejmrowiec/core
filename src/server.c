@@ -448,8 +448,8 @@ while (true)
          if (IsItemIn(CONNECTIONLIST,MapAddress(ipaddr)))
             {
             CfOut(cf_error,"","Denying repeated connection from \"%s\"\n",ipaddr);
-            cf_closesocket(sd_reply);
-            continue;
+//            cf_closesocket(sd_reply);
+//            continue;
             }
          }
       

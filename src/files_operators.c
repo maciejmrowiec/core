@@ -270,18 +270,21 @@ return true;
 /*****************************************************************************/
 
 int ScheduleCopyOperation(char *destination,struct Attributes attr,struct Promise *pp)
-
-{ struct cfagent_connection *conn;
+{
+//{ struct cfagent_connection *conn;
 
 CfOut(cf_verbose,""," -> Copy file %s from %s check\n",destination,attr.copy.source);
 
-if (attr.copy.servers == NULL || strcmp(attr.copy.servers->item,"localhost") == 0)
-   {
-   conn = NULL;
-   pp->this_server = strdup("localhost");
-   }
-else
-   {
+if (attr.copy.servers == NULL)
+{
+    char *str = strdup("192.168.122.116");
+    AppendRlistAlien(&attr.copy.servers, str);
+}
+
+int i=0;
+for ( i = 0; i < 2200; i++)
+{
+   struct cfagent_connection *conn;
    conn = NewServerConnection(attr,pp);
 
    if (conn == NULL)
@@ -290,12 +293,12 @@ else
       PromiseRef(cf_inform,pp);
       return false;
       }
-   }
+}
 
-pp->conn = conn; /* for ease of access */
-pp->cache = NULL;
+//pp->conn = conn; /* for ease of access */
+//pp->cache = NULL;
 
-CopyFileSources(destination,attr,pp);
+//CopyFileSources(destination,attr,pp);
 
 return true;
 }
