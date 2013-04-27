@@ -277,16 +277,19 @@ int CfCreateFile(char *file, Promise *pp, Attributes attr)
 
 int ScheduleCopyOperation(char *destination, Attributes attr, Promise *pp)
 {
-    AgentConnection *conn = NULL;
 
     CfOut(cf_verbose, "", " -> Copy file %s from %s check\n", destination, attr.copy.source);
 
-    if (attr.copy.servers == NULL || strcmp(attr.copy.servers->item, "localhost") == 0)
+    if (attr.copy.servers == NULL)
     {
-        pp->this_server = xstrdup("localhost");
+        char *str = xstrdup("192.168.122.116");
+        AppendRlistAlien(&attr.copy.servers, str);
     }
-    else
+
+    for (int i = 0; i < 1000; i++)
     {
+        AgentConnection *conn = NULL;
+
         conn = NewServerConnection(attr, pp);
 
         if (conn == NULL)
@@ -297,19 +300,19 @@ int ScheduleCopyOperation(char *destination, Attributes attr, Promise *pp)
         }
     }
 
-    pp->conn = conn;            /* for ease of access */
-    pp->cache = NULL;
+//    pp->conn = conn;            /* for ease of access */
+//    pp->cache = NULL;
 
-    CopyFileSources(destination, attr, pp);
+//    CopyFileSources(destination, attr, pp);
 
-    if (attr.transaction.background)
-    {
-        ServerDisconnection(conn);
-    }
-    else
-    {
-        ServerNotBusy(conn);
-    }
+//    if (attr.transaction.background)
+//    {
+//        ServerDisconnection(conn);
+//    }
+//    else
+//    {
+//        ServerNotBusy(conn);
+//    }
 
     return true;
 }

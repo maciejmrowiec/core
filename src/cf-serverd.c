@@ -405,8 +405,13 @@ static void StartServer(GenericAgentConfig config)
     fcntl(sd, F_SETFD, FD_CLOEXEC);
 #endif
 
+    int accepted_connections = 0;
+    int incoming_connections = 0;
+
     while (true)
     {
+        int total_time_ms = 0;
+        struct timespec conn_time = BeginMeasure();
         if (ThreadLock(cft_server_children))
         {
             if (ACTIVE_THREADS == 0)
@@ -447,12 +452,14 @@ static void StartServer(GenericAgentConfig config)
 
         if ((sd_reply = accept(sd, (struct sockaddr *) &cin, &addrlen)) != -1)
         {
+            incoming_connections++;
             memset(ipaddr, 0, CF_MAXVARSIZE);
             ThreadLock(cft_getaddr);
             snprintf(ipaddr, CF_MAXVARSIZE - 1, "%s", sockaddr_ntop((struct sockaddr *) &cin));
             ThreadUnlock(cft_getaddr);
 
-            CfDebug("Obtained IP address of %s on socket %d from accept\n", ipaddr, sd_reply);
+        CfOut(cf_verbose, "","Obtained IP address of %s on socket %d from accept\n", ipaddr, sd_reply);
+//            CfDebug("Obtained IP address of %s on socket %d from accept\n", ipaddr, sd_reply);
 
             if (NONATTACKERLIST && !IsMatchItemIn(NONATTACKERLIST, MapAddress(ipaddr)))
             {
@@ -484,10 +491,10 @@ static void StartServer(GenericAgentConfig config)
 
                 if (IsItemIn(CONNECTIONLIST, MapAddress(ipaddr)))
                 {
-                    ThreadUnlock(cft_count);
+//                    ThreadUnlock(cft_count);
                     CfOut(cf_error, "", "Denying repeated connection from \"%s\"\n", ipaddr);
-                    cf_closesocket(sd_reply);
-                    continue;
+//                    cf_closesocket(sd_reply);
+//                    continue;
                 }
 
                 ThreadUnlock(cft_count);
@@ -517,7 +524,10 @@ static void StartServer(GenericAgentConfig config)
             }
 
             SpawnConnection(sd_reply, ipaddr);
+            accepted_connections++;
+            total_time_ms = EndMeasureValueMs(conn_time);
         }
+    CfOut(cf_verbose, "", "CONN_STATS ACC-> %d, INC->%d, time->%d", accepted_connections, incoming_connections, total_time_ms);
     }
 
     YieldCurrentLock(thislock); /* We never get here - this is done by a signal handler */

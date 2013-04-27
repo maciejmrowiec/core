@@ -93,6 +93,28 @@ void EndMeasure(char *eventname, struct timespec start)
     }
 }
 
+int EndMeasureValueMs(struct timespec start)
+{
+    struct timespec stop;
+    int measured_ok = true;
+    double dt;
+
+    if (clock_gettime(CLOCK_REALTIME, &stop) == -1)
+    {
+       CfOut(cf_verbose, "clock_gettime", "Clock gettime failure");
+        measured_ok = false;
+    }
+
+    dt = (double) (stop.tv_sec - start.tv_sec) + (double) (stop.tv_nsec - start.tv_nsec) / (double) CF_BILLION;
+
+    if (measured_ok)
+    {
+        return (int)(dt * 1000); // to [ms]
+    }
+
+    return -1;
+}
+
 /***************************************************************/
 
 static void NotePerformance(char *eventname, time_t t, double value)
