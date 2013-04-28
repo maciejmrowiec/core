@@ -210,7 +210,7 @@ AgentConnection *ServerConnection(char *server, Attributes attr, Promise *pp)
 
         if (!AuthenticateAgent(conn, attr, pp))
         {
-            CfOut(cf_error, "", " !! Authentication dialogue with %s failed\n", server);
+            CfOut(cf_error, "", " !! Authentication dialogue with %s failed, %d\n", server, getpid());
             errno = EPERM;
             ServerDisconnection(conn);
             return NULL;

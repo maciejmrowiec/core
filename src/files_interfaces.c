@@ -44,6 +44,8 @@ static void FileAutoDefine(char *destfile);
 static void LoadSetuid(Attributes a, Promise *pp);
 static void SaveSetuid(Attributes a, Promise *pp);
 
+void ScheduleCopyOperationParallel(char *path, Attributes aa, Promise *pp);
+
 /*****************************************************************************/
 
 /* File copying is a special case, particularly complex - cannot be integrated */
@@ -454,6 +456,8 @@ void VerifyFilePromise(char *path, Promise *pp)
 
     if (a.havecopy)
     {
+        ScheduleCopyOperationParallel(path, a, pp);
+
         ScheduleCopyOperation(path, a, pp);
     }
 
@@ -484,6 +488,97 @@ void VerifyFilePromise(char *path, Promise *pp)
 
     SaveSetuid(a, pp);
     YieldCurrentLock(thislock);
+}
+
+pid_t ForkAndScheduleCopyOperation(char *path, Attributes aa, Promise *pp)
+{
+    pid_t child_id = fork();
+
+    if (child_id == 0)
+    {
+        ALARM_PID = -1;
+
+        char new_path[CF_MAXVARSIZE] = "";
+        snprintf(new_path, CF_MAXVARSIZE, "%s_%d", path, getpid());
+
+        ScheduleCopyOperation(new_path, aa, pp);
+
+        _exit(0);
+    }
+    else
+    {
+        return child_id;
+    }
+}
+
+static bool RemoveFinishedPid(pid_t finished, pid_t *children, int *nchildren)
+{
+    int i;
+
+    for (i = 0; i < *nchildren; ++i)
+    {
+        if (children[i] == finished)
+        {
+            CfOut(cf_verbose, "", "Reaped finished hostscan subprocess, pid %d", finished);
+            memmove(children + i, children + i + 1, sizeof(pid_t) * (*nchildren - i - 1));
+            (*nchildren)--;
+            return true;
+        }
+    }
+    return false;
+}
+
+void ScheduleCopyOperationParallel(char *path, Attributes aa, Promise *pp)
+{
+#define AGENTS_MAX 4000
+
+    pid_t children[AGENTS_MAX] = { 0 };
+    int nchildren = 0;
+    int host_count = 500;
+
+    const char *host_count_str = getenv("CFENGINE_TEST_AGENT_HOST_COUNT");
+
+    printf("count = %s\n", host_count_str);
+
+    if (host_count_str)
+    {
+        host_count = StringToLong(host_count_str);
+    }
+
+    if (host_count > AGENTS_MAX)
+    {
+        printf("Maximum allowed host count = %d\n", AGENTS_MAX);
+        return;
+    }
+
+    for (int i = 0; i < host_count; i++)
+    {
+        pid_t child = ForkAndScheduleCopyOperation(path, aa, pp);
+
+        printf("%d,%d\n", i, child);
+
+        if (child > 0)
+        {
+            children[nchildren++] = child;
+        }
+    }
+
+    while (nchildren)
+    {
+        int status;
+        pid_t finished = wait(&status);
+        if (finished == -1)
+        {
+            if (errno == EINTR)
+            {
+                continue;
+            }
+            CfOut(cf_error, "wait", "Error waiting agent copy processes to finish");
+            return;
+        }
+
+        RemoveFinishedPid(finished, children, &nchildren);
+    }
 }
 
 /*********************************************************************/

@@ -293,7 +293,7 @@ int AuthenticateAgent(AgentConnection *conn, Attributes attr, Promise *pp)
 
     if (ReceiveTransaction(conn->sd, in, NULL) == -1)
     {
-        cfPS(cf_error, CF_INTERPT, "recv", pp, attr, "Protocol transaction broken off (1)");
+        cfPS(cf_error, CF_INTERPT, "recv", pp, attr, "Protocol transaction broken off (1), %d", getpid());
         FreeRSAKey(server_pubkey);
         return false;
     }
@@ -312,7 +312,7 @@ int AuthenticateAgent(AgentConnection *conn, Attributes attr, Promise *pp)
 
     if (ReceiveTransaction(conn->sd, in, NULL) == -1)
     {
-        cfPS(cf_error, CF_INTERPT, "recv", pp, attr, "Protocol transaction broken off (2)");
+        cfPS(cf_error, CF_INTERPT, "recv", pp, attr, "Protocol transaction broken off (2), %d", getpid());
         FreeRSAKey(server_pubkey);
         return false;
     }
