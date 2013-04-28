@@ -415,7 +415,7 @@ static void StartServer(GenericAgentConfig config)
             CfOut(cf_verbose, "", "CONN_STATS more than 10ms (%ld us) spent waiting for locks!!", wait_for_lock);
         }
         wait_for_lock = 0;
-        struct timespec wait_time = conn_time;
+        struct timespec wait_time = BeginMeasure();
 
         if (ThreadLock(cft_server_children))
         {
