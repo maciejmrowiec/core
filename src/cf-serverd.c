@@ -407,13 +407,20 @@ static void StartServer(GenericAgentConfig config)
 
     int accepted_connections = 0;
     int incoming_connections = 0;
+    long wait_for_lock = 0;
 
     while (true)
     {
+        if (wait_for_lock > 10000) { // 10 ms
+            CfOut(cf_verbose, "", "CONN_STATS more than 10ms (%ld us) spent waiting for locks!!", wait_for_lock);
+        }
+        wait_for_lock = 0;
         double total_time = 0;
         struct timespec conn_time = BeginMeasure();
+        struct timespec wait_time = conn_time;
         if (ThreadLock(cft_server_children))
         {
+            wait_for_lock += EndMeasureValueUs(wait_time);
             if (ACTIVE_THREADS == 0)
             {
                 CheckFileChanges(config);
@@ -454,7 +461,9 @@ static void StartServer(GenericAgentConfig config)
         {
             incoming_connections++;
             memset(ipaddr, 0, CF_MAXVARSIZE);
+            wait_time = BeginMeasure();
             ThreadLock(cft_getaddr);
+            wait_for_lock += EndMeasureValueUs(wait_time);
             snprintf(ipaddr, CF_MAXVARSIZE - 1, "%s", sockaddr_ntop((struct sockaddr *) &cin));
             ThreadUnlock(cft_getaddr);
 
@@ -484,10 +493,12 @@ static void StartServer(GenericAgentConfig config)
 
             if (!IsMatchItemIn(MULTICONNLIST, MapAddress(ipaddr)))
             {
+                wait_time = BeginMeasure();
                 if (!ThreadLock(cft_count))
                 {
                     return;
                 }
+                wait_for_lock += EndMeasureValueUs(wait_time);
 
                 if (IsItemIn(CONNECTIONLIST, MapAddress(ipaddr)))
                 {
@@ -511,10 +522,12 @@ static void StartServer(GenericAgentConfig config)
 
             snprintf(intime, 63, "%d", (int) now);
 
+            struct timespec wait_time = BeginMeasure();
             if (!ThreadLock(cft_count))
             {
                 return;
             }
+            wait_for_lock += EndMeasureValueUs(wait_time);
 
             PrependItem(&CONNECTIONLIST, MapAddress(ipaddr), intime);
 
