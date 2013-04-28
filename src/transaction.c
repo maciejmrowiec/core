@@ -440,19 +440,12 @@ static void GetMutexName(const pthread_mutex_t *mutex, char *mutexname)
 
 /************************************************************************/
 
-static long TakeTimeNS(void)
-{
-    struct timeval time;
-    gettimeofday(&time, NULL);
-
-    long usec = time.tv_sec*1000000 + time.tv_usec;
-    return usec;
-}
+extern long EndMeasureValueUs(struct timespec start);
 
 int ThreadLock(pthread_mutex_t *mutex)
 {
     // start measuring on the stack
-    long begin_wait = TakeTimeNS();
+    struct timespec begin_wait = BeginMeasure();
 
     int result = pthread_mutex_lock(mutex);
 
@@ -460,10 +453,7 @@ int ThreadLock(pthread_mutex_t *mutex)
     int offset = mutex - cft_system;
     ThreadLockMetrics *lockmetrics = THREADLOCKMETRICS + offset;
 
-    lockmetrics->begin_wait = begin_wait;
-    long now = TakeTimeNS();
-    lockmetrics->end_wait = now;
-    long time_waited = lockmetrics->end_wait - lockmetrics->begin_wait;
+    long time_waited = EndMeasureValueUs(begin_wait);
     lockmetrics->total_waited += time_waited;
     if (time_waited > lockmetrics->max_wait)
     {
@@ -480,7 +470,7 @@ int ThreadLock(pthread_mutex_t *mutex)
         return false;
     }
 
-    lockmetrics->begin_hold = now;
+    lockmetrics->begin_hold = BeginMeasure();
     return true;
 }
 
@@ -491,9 +481,7 @@ int ThreadUnlock(pthread_mutex_t *mutex)
     // need to do this before actually freeing the lock, otherwise race condition
     int offset = mutex - cft_system;
     ThreadLockMetrics *lockmetrics = THREADLOCKMETRICS + offset;
-    long now = TakeTimeNS();
-    lockmetrics->end_hold = now;
-    long time_held = lockmetrics->end_hold - lockmetrics->begin_hold;
+    long time_held = EndMeasureValueUs(lockmetrics->begin_hold);
     lockmetrics->total_held += time_held;
     if (time_held > lockmetrics->max_held)
     {

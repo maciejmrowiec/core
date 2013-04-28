@@ -999,12 +999,9 @@ extern pthread_mutex_t *cft_server_children;
 
 typedef struct
 {
-    long begin_wait;
-    long end_wait;
     long total_waited;
     long max_wait;
-    long begin_hold;
-    long end_hold;
+    struct timespec begin_hold;
     long total_held;
     long max_held;
 } ThreadLockMetrics;
