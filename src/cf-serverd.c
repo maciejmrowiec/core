@@ -410,7 +410,7 @@ static void StartServer(GenericAgentConfig config)
 
     while (true)
     {
-        int total_time_ms = 0;
+        double total_time = 0;
         struct timespec conn_time = BeginMeasure();
         if (ThreadLock(cft_server_children))
         {
@@ -525,9 +525,9 @@ static void StartServer(GenericAgentConfig config)
 
             SpawnConnection(sd_reply, ipaddr);
             accepted_connections++;
-            total_time_ms = EndMeasureValueMs(conn_time);
+            total_time = EndMeasureValueD(conn_time);
         }
-    CfOut(cf_verbose, "", "CONN_STATS ACC-> %d, INC->%d, time->%d", accepted_connections, incoming_connections, total_time_ms);
+    CfOut(cf_verbose, "", "CONN_STATS ACC-> %d, INC->%d, time->%lf", accepted_connections, incoming_connections, total_time);
     }
 
     YieldCurrentLock(thislock); /* We never get here - this is done by a signal handler */
@@ -704,7 +704,7 @@ void PurgeOldConnections(Item **list, time_t now)
     Item *next;
     int list_size = 0;
 
-    int total_time_ms = 0;
+    double total_time = 0;
     struct timespec it_time = BeginMeasure();
 
     for (ip = *list; ip != NULL; ip = next)
@@ -721,10 +721,10 @@ void PurgeOldConnections(Item **list, time_t now)
         }
     }
 
-    total_time_ms = EndMeasureValueMs(it_time);
+    total_time = EndMeasureValueMs(it_time);
 
-    CfOut(cf_verbose, "", "Scanned CONNECTIONLIST (%d entries) while ACTIVE_THREADS was %d -- took time %d ms",
-          list_size, ACTIVE_THREADS, total_time_ms);
+    CfOut(cf_verbose, "", "Scanned CONNECTIONLIST (%d entries) while ACTIVE_THREADS was %d -- took time %lf [s]",
+          list_size, ACTIVE_THREADS, total_time);
 
     if (!ThreadUnlock(cft_count))
     {

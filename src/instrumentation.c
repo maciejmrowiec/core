@@ -93,7 +93,7 @@ void EndMeasure(char *eventname, struct timespec start)
     }
 }
 
-int EndMeasureValueMs(struct timespec start)
+double EndMeasureValueD(struct timespec start)
 {
     struct timespec stop;
     int measured_ok = true;
@@ -109,7 +109,7 @@ int EndMeasureValueMs(struct timespec start)
 
     if (measured_ok)
     {
-        return (int)(dt * 1000); // to [ms]
+        return dt;
     }
 
     return -1;

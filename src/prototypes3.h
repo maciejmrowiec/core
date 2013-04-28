@@ -629,7 +629,7 @@ struct timespec BeginMeasure(void);
 void EndMeasure(char *eventname, struct timespec start);
 void EndMeasurePromise(struct timespec start, Promise *pp);
 void NoteClassUsage(AlphaList list, int purge);
-int EndMeasureValueMs(struct timespec start);
+double EndMeasureValueD(struct timespec start);
 /* install.c */
 
 int RelevantBundle(char *agent, char *blocktype);
