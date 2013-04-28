@@ -721,7 +721,7 @@ void PurgeOldConnections(Item **list, time_t now)
         }
     }
 
-    total_time = EndMeasureValueMs(it_time);
+    total_time = EndMeasureValueD(it_time);
 
     CfOut(cf_verbose, "", "Scanned CONNECTIONLIST (%d entries) while ACTIVE_THREADS was %d -- took time %lf [s]",
           list_size, ACTIVE_THREADS, total_time);
