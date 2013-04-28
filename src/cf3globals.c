@@ -211,6 +211,21 @@ pthread_mutex_t MUTEXES[] =
     PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP,
 };
 
+ThreadLockMetrics THREADLOCKMETRICS[] =
+{
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1},
+    {0, 0, 0, -1, 0, 0, 0, -1}
+};
+
 pthread_mutex_t *cft_system = &MUTEXES[0];
 pthread_mutex_t *cft_lock = &MUTEXES[1];
 pthread_mutex_t *cft_count = &MUTEXES[2];

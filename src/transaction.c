@@ -440,9 +440,35 @@ static void GetMutexName(const pthread_mutex_t *mutex, char *mutexname)
 
 /************************************************************************/
 
+static long TakeTimeNS(void)
+{
+    struct timeval time;
+    gettimeofday(&time, NULL);
+
+    long usec = time.tv_sec*1000000 + time.tv_usec;
+    return usec;
+}
+
 int ThreadLock(pthread_mutex_t *mutex)
 {
+    // start measuring on the stack
+    long begin_wait = TakeTimeNS();
+
     int result = pthread_mutex_lock(mutex);
+
+    // save to update the global only once lock is acquired
+    int offset = mutex - cft_system;
+    ThreadLockMetrics *lockmetrics = THREADLOCKMETRICS + offset;
+
+    lockmetrics->begin_wait = begin_wait;
+    long now = TakeTimeNS();
+    lockmetrics->end_wait = now;
+    long time_waited = lockmetrics->end_wait - lockmetrics->begin_wait;
+    lockmetrics->total_waited += time_waited;
+    if (time_waited > lockmetrics->max_wait)
+    {
+        lockmetrics->max_wait = time_waited;
+    }
 
     if (result != 0)
     {
@@ -453,6 +479,8 @@ int ThreadLock(pthread_mutex_t *mutex)
         printf("!! Could not lock %s: %s\n", mutexname, strerror(result));
         return false;
     }
+
+    lockmetrics->begin_hold = now;
     return true;
 }
 
@@ -460,6 +488,18 @@ int ThreadLock(pthread_mutex_t *mutex)
 
 int ThreadUnlock(pthread_mutex_t *mutex)
 {
+    // need to do this before actually freeing the lock, otherwise race condition
+    int offset = mutex - cft_system;
+    ThreadLockMetrics *lockmetrics = THREADLOCKMETRICS + offset;
+    long now = TakeTimeNS();
+    lockmetrics->end_hold = now;
+    long time_held = lockmetrics->end_hold - lockmetrics->begin_hold;
+    lockmetrics->total_held += time_held;
+    if (time_held > lockmetrics->max_held)
+    {
+        lockmetrics->max_held = time_held;
+    }
+
     int result = pthread_mutex_unlock(mutex);
 
     if (result != 0)
@@ -473,6 +513,19 @@ int ThreadUnlock(pthread_mutex_t *mutex)
     }
 
     return true;
+}
+
+void DumpThreadMetrics(void)
+{
+    CfOut(cf_verbose, "", ">>> Logging lock statistics BEGIN");
+    CfOut(cf_verbose, "", "Lock\tTotalWait\tMaxWait\tTotalHeld\tMaxHeld");
+    for (int t = 0; t < 11; ++t)
+    {
+        ThreadLockMetrics *lockmetrics = THREADLOCKMETRICS + t;
+        CfOut(cf_verbose, "", "%d \t %ld \t %ld \t %ld \t %ld",
+              t, lockmetrics->total_waited, lockmetrics->max_wait, lockmetrics->total_held, lockmetrics->max_held);
+    }
+    CfOut(cf_verbose, "", ">>> Logging lock statistics END");
 }
 
 #endif
