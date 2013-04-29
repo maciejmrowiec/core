@@ -53,6 +53,9 @@ typedef struct
     char encryption_type;
     char ipaddr[CF_MAX_IP_LEN];
     char output[CF_BUFSIZE * 2];        /* Threadsafe output channel */
+
+  char fake_ip[CF_MAX_IP_LEN];
+  char fake_key[CF_MAXVARSIZE];
 } ServerConnectionState;
 
 /**********************************************************************/
