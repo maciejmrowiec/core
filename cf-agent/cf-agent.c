@@ -271,6 +271,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_NOVA
     Nova_NoteVarUsageDB();
     Nova_TrackExecution(config->input_file);
+    Nova_MakeDeltaReports();
 #endif
     PurgeLocks();
 
