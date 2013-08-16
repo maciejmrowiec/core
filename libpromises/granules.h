@@ -30,9 +30,7 @@
 char *GenTimeKey(time_t now);
 const char *ShiftSlotToString(int shift_slot);
 int GetTimeSlot(time_t here_and_now);
-int GetShiftSlot(time_t here_and_now);
 
-time_t GetShiftSlotStart(time_t t);
 time_t MeasurementSlotStart(time_t t);
 time_t MeasurementSlotTime(size_t slot, size_t num_slots, time_t now);
 

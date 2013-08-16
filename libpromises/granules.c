@@ -45,16 +45,6 @@ int GetTimeSlot(time_t here_and_now)
     return ((here_and_now - (4 * 24 * 60 * 60)) % SECONDS_PER_WEEK) / (long)CF_MEASURE_INTERVAL;
 }
 
-int GetShiftSlot(time_t t)
-{
-    return UnsignedModulus((t - CF_MONDAY_MORNING), SECONDS_PER_WEEK) / CF_SHIFT_INTERVAL;
-}
-
-time_t GetShiftSlotStart(time_t t)
-{
-    return (t - (t % SECONDS_PER_SHIFT));
-}
-
 time_t MeasurementSlotStart(time_t t)
 {
     return (t - t % (time_t)CF_MEASURE_INTERVAL);
