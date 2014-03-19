@@ -25,6 +25,7 @@
 #include <csv_parser.h>
 #include <alloc.h>
 #include <writer.h>
+#include <buffer.h>
 
 typedef enum
 {
@@ -329,7 +330,7 @@ char *GetCsvLineNext(FILE *fp)
         return NULL;
     }
 
-    Writer *buffer = StringWriter();
+    Buffer *buffer = BufferNew();
 
     char prev = 0;
 
@@ -341,7 +342,7 @@ char *GetCsvLineNext(FILE *fp)
             break;
         }
 
-        WriterWriteChar(buffer, current);
+        BufferAppendChar(buffer, current);
 
         if ((current == '\n') && (prev == '\r'))
         {
@@ -351,11 +352,11 @@ char *GetCsvLineNext(FILE *fp)
         prev = current;
     }
 
-    if (StringWriterLength(buffer) <= 0)
+    if (BufferSize(buffer) <= 0)
     {
-        WriterClose(buffer);
+        BufferDestroy(buffer);
         return NULL;
     }
 
-    return StringWriterClose(buffer);
+    return BufferClose(buffer);
 }
