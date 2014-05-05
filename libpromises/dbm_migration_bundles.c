@@ -55,7 +55,7 @@ static bool BundlesMigrationVersion0(DBHandle *db)
         }
 
         char *fqname = StringConcatenate(3, "default", ".", key);
-        if (!DBWriteCursorEntry(cursor, fqname, value, vsize))
+        if (!WriteDB(db, fqname, value, vsize))
         {
             Log(LOG_LEVEL_INFO, "Unable to write version 1 bundle entry for '%s'", key);
             errors = true;
