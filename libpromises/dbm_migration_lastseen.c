@@ -103,7 +103,7 @@ static bool LastseenMigrationVersion0(DBHandle *db)
         char hostkey_key[CF_BUFSIZE];
         snprintf(hostkey_key, CF_BUFSIZE, "k%s", hostkey);
 
-        if (!WriteDB(db, hostkey_key, old_data_address, strlen(old_data_address) + 1))
+        if (!DBWriteCursorEntry(cursor, hostkey_key, old_data_address, strlen(old_data_address) + 1))
         {
             Log(LOG_LEVEL_INFO, "Unable to write version 1 lastseen entry for '%s'", key);
             errors = true;
@@ -113,7 +113,7 @@ static bool LastseenMigrationVersion0(DBHandle *db)
         char address_key[CF_BUFSIZE];
         snprintf(address_key, CF_BUFSIZE, "a%s", old_data_address);
 
-        if (!WriteDB(db, address_key, hostkey, strlen(hostkey) + 1))
+        if (!DBWriteCursorEntry(cursor, address_key, hostkey, strlen(hostkey) + 1))
         {
             Log(LOG_LEVEL_INFO, "Unable to write version 1 reverse lastseen entry for '%s'", key);
             errors = true;
@@ -154,7 +154,7 @@ static bool LastseenMigrationVersion0(DBHandle *db)
             }
         };
 
-        if (!WriteDB(db, quality_key, &data, sizeof(data)))
+        if (!DBWriteCursorEntry(cursor, quality_key, &data, sizeof(data)))
         {
             Log(LOG_LEVEL_INFO, "Unable to write version 1 connection quality key for '%s'", key);
             errors = true;
