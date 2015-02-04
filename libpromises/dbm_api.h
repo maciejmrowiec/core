@@ -30,7 +30,6 @@
 typedef enum
 {
     dbid_classes,
-    dbid_variables,
     dbid_performance,
     dbid_checksums, // Deprecated
     dbid_filestats, // Deprecated
@@ -49,7 +48,6 @@ typedef enum
     dbid_license,
     dbid_value,
     dbid_agent_execution,
-    dbid_bundles,
 
     dbid_max
 } dbid;

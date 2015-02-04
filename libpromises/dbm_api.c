@@ -72,7 +72,6 @@ static pthread_once_t db_shutdown_once = PTHREAD_ONCE_INIT; /* GLOBAL_T */
 
 static const char *const DB_PATHS[] = {
     [dbid_classes] = "cf_classes",
-    [dbid_variables] = "state/cf_variables",
     [dbid_performance] = "performance",
     [dbid_checksums] = "checksum_digests",
     [dbid_filestats] = "stats",
@@ -91,7 +90,6 @@ static const char *const DB_PATHS[] = {
     [dbid_license] = "nova_track",
     [dbid_value] = "nova_value",
     [dbid_agent_execution] = "nova_agent_execution",
-    [dbid_bundles] = "bundles",
 };
 
 /******************************************************************************/
